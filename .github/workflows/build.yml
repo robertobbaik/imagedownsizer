@@ -25,7 +25,7 @@ jobs:
 
     - name: Build with PyInstaller
       run: |
-        pyinstaller --onefile --noconsole --name "PixelResizer" pixel_resizer_v2.py
+        python -m PyInstaller --onefile --noconsole --name "PixelResizer" pixel_resizer_v2.py
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
