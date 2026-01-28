@@ -35,9 +35,20 @@ jobs:
           --copy-metadata=pymatting \
           --copy-metadata=rembg \
           --name "PixelResizer" pixel_resizer_v2.py
+# ... (위쪽 빌드 과정은 그대로) ...
 
+    # [수정] Artifact 업로드는 끄거나 유지해도 되지만, 아래 Release가 훨씬 빠름
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: PixelResizer-${{ matrix.os }}
         path: dist/
+
+    # [추가] 빌드 끝나면 'Releases' 탭에 고속 다운로드 링크 생성
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/') # 태그(v1.0 등)를 달았을 때만 실행
+      uses: softprops/action-gh-release@v1
+      with:
+        files: dist/*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
