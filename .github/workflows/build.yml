@@ -19,18 +19,23 @@ jobs:
         python-version: '3.10'
 
     - name: Install and Build (Force)
+      # [핵심] bash를 강제 지정해야 윈도우에서도 리눅스 명령어(줄바꿈 등)가 먹힘
+      shell: bash
       run: |
         python -m pip install --upgrade pip
-        # rembg 관련 의존성 확실하게 설치
-        python -m pip install Pillow rembg[cli] onnxruntime pyinstaller
+        # 따옴표를 써야 맥(zsh)에서도 에러가 안 남
+        python -m pip install "Pillow" "rembg[cli]" "onnxruntime" "pyinstaller" "pymatting"
 
-        # [핵심 수정] --hidden-import 옵션 추가
-        # rembg와 onnxruntime을 강제로 포함시킴
+        # PyInstaller 실행 (숨겨진 모듈 강제 포함 + 메타데이터 복사)
         python -m PyInstaller --onefile --noconsole \
           --hidden-import=rembg \
           --hidden-import=onnxruntime \
           --hidden-import=PIL \
+          --hidden-import=pymatting \
+          --copy-metadata=pymatting \
+          --copy-metadata=rembg \
           --name "PixelResizer" pixel_resizer_v2.py
+
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
