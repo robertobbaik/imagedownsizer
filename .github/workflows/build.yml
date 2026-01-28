@@ -20,15 +20,17 @@ jobs:
 
     - name: Install and Build (Force)
       run: |
-        # pip 업그레이드
         python -m pip install --upgrade pip
-        
-        # 파일 의존성 없이 여기서 직접 강제 설치
-        python -m pip install Pillow rembg onnxruntime pyinstaller
+        # rembg 관련 의존성 확실하게 설치
+        python -m pip install Pillow rembg[cli] onnxruntime pyinstaller
 
-        # 설치 직후 같은 세션에서 빌드 실행 (모듈 못 찾을 확률 0%)
-        python -m PyInstaller --onefile --noconsole --name "PixelResizer" pixel_resizer_v2.py
-
+        # [핵심 수정] --hidden-import 옵션 추가
+        # rembg와 onnxruntime을 강제로 포함시킴
+        python -m PyInstaller --onefile --noconsole \
+          --hidden-import=rembg \
+          --hidden-import=onnxruntime \
+          --hidden-import=PIL \
+          --name "PixelResizer" pixel_resizer_v2.py
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
