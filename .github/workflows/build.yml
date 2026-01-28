@@ -16,15 +16,17 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.10' # 가장 안정적인 버전 사용
+        python-version: '3.10'
 
-    - name: Install dependencies
+    - name: Install and Build (Force)
       run: |
+        # pip 업그레이드
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        
+        # 파일 의존성 없이 여기서 직접 강제 설치
+        python -m pip install Pillow rembg onnxruntime pyinstaller
 
-    - name: Build with PyInstaller
-      run: |
+        # 설치 직후 같은 세션에서 빌드 실행 (모듈 못 찾을 확률 0%)
         python -m PyInstaller --onefile --noconsole --name "PixelResizer" pixel_resizer_v2.py
 
     - name: Upload Artifacts
