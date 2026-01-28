@@ -1,6 +1,14 @@
 name: Build GUI App
 
-on: [push]
+# [핵심 1] 403 에러 해결: 봇에게 릴리즈 생성(쓰기) 권한 부여
+permissions:
+  contents: write
+
+on:
+  push:
+    branches: [ "main", "master" ]
+    tags:
+      - 'v*' # v1.0, v0.2 등 태그가 달리면 릴리즈 배포 실행
 
 jobs:
   build:
@@ -19,14 +27,14 @@ jobs:
         python-version: '3.10'
 
     - name: Install and Build (Force)
-      # [핵심] bash를 강제 지정해야 윈도우에서도 리눅스 명령어(줄바꿈 등)가 먹힘
+      # [핵심 2] 윈도우/맥 명령어 통일: bash 강제 사용
       shell: bash
       run: |
         python -m pip install --upgrade pip
-        # 따옴표를 써야 맥(zsh)에서도 에러가 안 남
+        # [핵심 3] 따옴표 사용: zsh/PowerShell 문법 충돌 방지
         python -m pip install "Pillow" "rembg[cli]" "onnxruntime" "pyinstaller" "pymatting"
 
-        # PyInstaller 실행 (숨겨진 모듈 강제 포함 + 메타데이터 복사)
+        # [핵심 4] 모듈 강제 포함 & 메타데이터 복사 (ModuleNotFoundError 방지)
         python -m PyInstaller --onefile --noconsole \
           --hidden-import=rembg \
           --hidden-import=onnxruntime \
@@ -35,18 +43,17 @@ jobs:
           --copy-metadata=pymatting \
           --copy-metadata=rembg \
           --name "PixelResizer" pixel_resizer_v2.py
-# ... (위쪽 빌드 과정은 그대로) ...
 
-    # [수정] Artifact 업로드는 끄거나 유지해도 되지만, 아래 Release가 훨씬 빠름
+    # (선택) Artifact에도 업로드 (혹시 릴리즈 실패 시 백업용)
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: PixelResizer-${{ matrix.os }}
         path: dist/
 
-    # [추가] 빌드 끝나면 'Releases' 탭에 고속 다운로드 링크 생성
+    # [핵심 5] Release 생성 및 고속 업로드 (태그 푸시했을 때만 작동)
     - name: Create Release
-      if: startsWith(github.ref, 'refs/tags/') # 태그(v1.0 등)를 달았을 때만 실행
+      if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v1
       with:
         files: dist/*
